@@ -11,24 +11,17 @@ our @EXPORT = qw(
 );
 
 use version;
-our $VERSION = qv('0.0.3');
+our $VERSION = qv('0.0.4');
 
 our $enabled = 0;
 our $timestamp = 1;
 our $file = undef;
 
-# Other recommended modules (uncomment to use):
-#  use IO::Prompt;
-#  use Perl6::Export;
-#  use Perl6::Slurp;
-#  use Perl6::Say;
-
-
-# Module implementation here
+#======================================================================
 sub dlog {
 	my( $log ) = @_;
 
-	if( $enabled ){
+	if( $TRD::DebugLog::enabled ){
 		my( $source, $line, $func, $buff, $timestr );
 		( $source, $line ) = (caller 0)[1,2];
 		( $func ) = (caller 1)[3];
@@ -36,7 +29,7 @@ sub dlog {
 
 		$buff = "${source}(${line}):${func}:${log}\n";
 
-		if( $timestamp ){
+		if( $TRD::DebugLog::timestamp ){
 			my( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) =
 				localtime( time );
 			$timestr = sprintf( "%04d/%02d/%02d %02d:%02d:%02d",
@@ -45,7 +38,7 @@ sub dlog {
 			$buff = $timestr. " ". $buff;
 		}
 
-		if( $file ){
+		if( $TRD::DebugLog::file ){
 			open( my $fh, ">>", "${file}" ) || die $!;
 			print $fh $buff;
 			close( $fh );
