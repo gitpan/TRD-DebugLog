@@ -1,7 +1,13 @@
 package TRD::DebugLog;
 
-use warnings;
+#use warnings;
 use strict;
+require Exporter;
+
+our @ISA = qw(Exporter);
+our @EXPORT = qw(
+	dlog
+);
 
 =head1 NAME
 
@@ -9,11 +15,11 @@ TRD::DebugLog - debug log
 
 =head1 VERSION
 
-Version 0.0.5
+Version 0.0.6
 
 =cut
 
-our $VERSION = '0.0.5';
+our $VERSION = '0.0.6';
 our $enabled = 0;
 our $timestamp = 1;
 our $file = undef;
