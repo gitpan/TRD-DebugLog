@@ -2,12 +2,12 @@ package TRD::DebugLog;
 
 #use warnings;
 use strict;
-require Exporter;
+#require Exporter;
 
-our @ISA = qw(Exporter);
-our @EXPORT = qw(
-	dlog
-);
+#our @ISA = qw(Exporter);
+#our @EXPORT = qw(
+#	dlog
+#);
 
 =head1 NAME
 
@@ -15,14 +15,15 @@ TRD::DebugLog - debug log
 
 =head1 VERSION
 
-Version 0.0.6
+Version 0.0.7
 
 =cut
 
-our $VERSION = '0.0.6';
+our $VERSION = '0.0.7';
 our $enabled = 0;
 our $timestamp = 1;
 our $file = undef;
+our $timeformat = 'YYYY/MM/DD HH24:MI:SS';
 
 =head1 SYNOPSIS
 
@@ -31,8 +32,12 @@ Quick summary of what the module does.
 Perhaps a little code snippet.
 
     use TRD::DebugLog;
-
     $TRD::DebugLog::enabled = 1;
+    dlog( "this is debug log" );
+
+  or
+
+    use TRD::DebugLog { enabled=>1, timeformat='YYYY-MM-DD HH24:MI:SS' };
     dlog( "this is debug log" );
 
 =head1 EXPORT
@@ -47,18 +52,34 @@ if you don't export anything, such as for a purely object-oriented module.
    show debug log.
 
    $TRD::DebugLog::enabled
+    default: 0
        = 1 : enable debug log
        = 0 : disable debug log
+
    $TRD::DebugLog::timestamp
+    default: 1
        = 1 : show timestamp enable
        = 0 : show timestamp disable
+
    $TRD::DebugLog::file
+    default: undef
        debug log append to file
+
+   $TRD::DebugLog::timeformat
+     default: YYYY/MM/DD HH24:MI:SS
+       YYYY : 4digit Year
+       YY   : 2digit Year
+       MM   : 2digit Month
+       DD   : 2digit Day
+       HH24 : 24hour 2digit Hour
+       MI   : 2digit Min
+       SS   : 2digit Sec
 
 =cut
 
 #======================================================================
-sub dlog {
+sub dlog($)
+{
 	my( $log ) = @_;
 
 	if( $TRD::DebugLog::enabled ){
@@ -70,11 +91,7 @@ sub dlog {
 		$buff = "${source}(${line}):${func}:${log}\n";
 
 		if( $TRD::DebugLog::timestamp ){
-			my( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) =
-				localtime( time );
-			$timestr = sprintf( "%04d/%02d/%02d %02d:%02d:%02d",
-				$year +=1900, $mon+1, $mday, $hour, $min, $sec );
-
+			$timestr = &getTimeStr( time );
 			$buff = $timestr. " ". $buff;
 		}
 
@@ -84,6 +101,64 @@ sub dlog {
 			close( $fh );
 		} else {
 			print STDERR $buff;
+		}
+	}
+}
+
+=head2 getTimeStr( time )
+
+    make timestr
+
+    my $timestr = &TRD::DebugLog::getTimeStr( time );
+
+=cut
+
+#======================================================================
+sub getTimeStr
+{
+	my $time = (@_) ? shift : time;
+	my( $sec, $min, $hour, $mday, $mon, $year, $wday, $yday, $isdst ) =
+		localtime( $time );
+
+	my $timestr = $timeformat;
+	$timestr=~s/YYYY/sprintf( "%04d", $year + 1900)/eg;
+	$timestr=~s/YY/sprintf( "%02d", $year - 100 )/eg;
+	$timestr=~s/MM/sprintf( "%02d", $mon + 1 )/eg;
+	$timestr=~s/DD/sprintf( "%02d", $mday )/eg;
+	$timestr=~s/HH24/sprintf( "%02d", $hour )/eg;
+	$timestr=~s/MI/sprintf( "%02d", $min )/eg;
+	$timestr=~s/SS/sprintf( "%02d", $sec )/eg;
+
+	return $timestr;
+}
+
+=head2 import
+
+    import module
+
+=cut
+#======================================================================
+sub import
+{
+	my $package = shift;
+	my $callerpkg = (caller(0))[0];
+	no strict qw(refs);
+	*{"$callerpkg\::dlog"} = *{"TRD\::DebugLog\::dlog"};
+
+	my( @param ) = @_;
+
+	foreach my $p ( @param ){
+		foreach my $key ( keys(%{$p}) ){
+			if( $key eq 'enabled' ){
+				$enabled = $p->{$key};
+			} elsif( $key eq 'timestamp' ){
+				$timestamp = $p->{$key};
+			} elsif( $key eq 'file' ){
+				$file = $p->{$key};
+				$file = undef if( $file eq '' );
+			} elsif( $key eq 'timeformat' ){
+				$timeformat = $p->{$key};
+			}
 		}
 	}
 }

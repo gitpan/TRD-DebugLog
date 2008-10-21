@@ -3,3 +3,5 @@ Revision history for TRD-DebugLog
 0.01    Date/time
         First version, released on an unsuspecting world.
 
+0.07    Support set parameter for 'use'.
+        add 'getTimeStr' sub.
