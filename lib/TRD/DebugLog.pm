@@ -2,12 +2,6 @@ package TRD::DebugLog;
 
 #use warnings;
 use strict;
-#require Exporter;
-
-#our @ISA = qw(Exporter);
-#our @EXPORT = qw(
-#	dlog
-#);
 
 =head1 NAME
 
@@ -15,15 +9,16 @@ TRD::DebugLog - debug log
 
 =head1 VERSION
 
-Version 0.0.7
+Version 0.0.8
 
 =cut
 
-our $VERSION = '0.0.7';
+our $VERSION = '0.0.8';
 our $enabled = 0;
 our $timestamp = 1;
 our $file = undef;
-our $timeformat = 'YYYY/MM/DD HH24:MI:SS';
+our $timeformat = 'YYYY/MM/DD HH24:MI:SS ';
+our $cutpackage = 'main';
 
 =head1 SYNOPSIS
 
@@ -75,6 +70,10 @@ if you don't export anything, such as for a purely object-oriented module.
        MI   : 2digit Min
        SS   : 2digit Sec
 
+   $TRD::DebugLog::cutpackage
+     default: main (cut 'main::' only)
+            : all
+
 =cut
 
 #======================================================================
@@ -82,17 +81,23 @@ sub dlog($)
 {
 	my( $log ) = @_;
 
+	my $buff = undef;
+
 	if( $TRD::DebugLog::enabled ){
-		my( $source, $line, $func, $buff, $timestr );
+		my( $source, $line, $func );
 		( $source, $line ) = (caller 0)[1,2];
 		( $func ) = (caller 1)[3];
-		$func =~s/^main:://;
+		if( $cutpackage eq 'main' ){
+			$func =~s/^main:://;
+		} elsif( $cutpackage eq 'all' ){
+			$func = ( split( '::', $func ) )[-1];
+		}
 
 		$buff = "${source}(${line}):${func}:${log}\n";
 
 		if( $TRD::DebugLog::timestamp ){
-			$timestr = &getTimeStr( time );
-			$buff = $timestr. " ". $buff;
+			my $timestr = &getTimeStr();
+			$buff = $timestr. $buff;
 		}
 
 		if( $TRD::DebugLog::file ){
@@ -103,6 +108,7 @@ sub dlog($)
 			print STDERR $buff;
 		}
 	}
+	return $buff;
 }
 
 =head2 getTimeStr( time )
