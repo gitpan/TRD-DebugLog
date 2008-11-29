@@ -8,3 +8,6 @@ Revision history for TRD-DebugLog
 
 0.08	dlog return LogMessage.
 		package name cut support.
+
+0.09	add 'Exception' sub.
+		exception log

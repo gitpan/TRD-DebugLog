@@ -9,11 +9,11 @@ TRD::DebugLog - debug log
 
 =head1 VERSION
 
-Version 0.0.8
+Version 0.0.9
 
 =cut
 
-our $VERSION = '0.0.8';
+our $VERSION = '0.0.9';
 our $enabled = 0;
 our $timestamp = 1;
 our $file = undef;
@@ -109,6 +109,33 @@ sub dlog($)
 		}
 	}
 	return $buff;
+}
+
+=head2 Exception( log )
+
+    show exception log
+
+=cut
+#======================================================================
+sub Exception
+{
+	my( $log ) = @_;
+	my( $p, $f, $l ) = caller(0);
+	my( $s ) = (caller(1))[3];
+
+	print STDERR "TRD::DebugLog::Exception: ${log}\n";
+	my $i=0;
+	while(1){
+		my( $package, $filename, $line ) = (caller $i)[0,1,2];
+		my( $subroutine ) = (caller $i+1)[3];
+		$package .= '::';
+		$package = '' if( $package eq 'main::' );
+		print STDERR "\tat ${filename}(${line})\t${package}${subroutine}\n";
+		$i++;
+		if( !defined( $subroutine ) ){
+			last;
+		}
+	}
 }
 
 =head2 getTimeStr( time )
